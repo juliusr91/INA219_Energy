@@ -27,3 +27,9 @@ void init_ina219(void);
 void get_bus_voltage(uint8_t *value);
 void get_shunt_voltage(uint8_t *value);
 void get_current(uint8_t *value);
+
+//overlap request and UART
+void prepare_bus_voltage(void);
+void read_bus_voltage(uint8_t *value);
+void prepare_shunt_voltage(void);
+void read_shunt_voltage(uint8_t *value);

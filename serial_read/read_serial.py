@@ -59,11 +59,16 @@ def receive_data():
         time = port.read(2)
         decoded_time = struct.unpack("<H", time)[0]
 
+        # shitty_time = port.read(2)
+        # shitty_time = struct.unpack("<H", shitty_time)[0]
+        # print(shitty_time)
+
         busvoltage = port.read(2)
         decoded_busvoltage = (struct.unpack("<H", busvoltage)[0] >> 3) * 4 * 0.001 #in V
 
         shuntvoltage = port.read(2)
         decoded_shuntvoltage = struct.unpack("<H", shuntvoltage)[0] *4  #(in mV) times 4 because of the 0.025Ohm resistor
+
 
         # amp = port.read(2)
         # decoded_amp = struct.unpack("<H", amp)[0] / current_divider #in mA
