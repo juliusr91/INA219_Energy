@@ -2,16 +2,39 @@ import serial
 import os
 import struct
 import time
+import paramiko
 
 current_divider = 10
+client = None
 
-# def write_to_file(time_array, busvoltage_data, shuntvoltage_data, amp_data):
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#Odroid Function
+""""""
+# def ssh_connect():
+#     hostname =
+#     password =
+#     username =
+#     client = paramiko.SSHClient()
+#     client.load_system_host_keys()
+#     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+#     client.connect(hostname, username=username, password=password)
+#
+# def ssh_close():
+#     client.close()
+#
+#
+# def ssh_command(command):
+#     return client.exec_command(command)
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+# INA Functions
 def write_to_file(time_array, busvoltage_data, amp_data, power):
-# def write_to_file(time_array, busvoltage_data, amp_data):
     with open("data1.txt","a+") as b_file:
-        # for line in zip(time_array, busvoltage_data, shuntvoltage_data, amp_data):
         for line in zip(time_array, busvoltage_data, amp_data, power):
-        # for line in zip(time_array, busvoltage_data, amp_data):
             b_file.write(str(line)+"\n")
 
 def get_serial_port():
@@ -74,11 +97,17 @@ def send_start():
     else:
         print(num_bytes)
 
-port = init_serial()
-try:
-    receive_data()
-except KeyboardInterrupt:
-    print('interrupted')
 
-# results.close()
-port.close()
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+if __name__ == '__main__':
+    port = init_serial()
+    try:
+        receive_data()
+    except KeyboardInterrupt:
+        print('interrupted')
+
+    # results.close()
+    port.close()

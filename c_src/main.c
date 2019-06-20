@@ -58,15 +58,10 @@ int main(void) {
     shuntvoltage[1]=0;
     shuntvoltage[0]=0;
 
-    // current[1]=0;
-    // current[0]=0;
-
-
     /* code */
     time = TCNT1;
     USART_Transmit(time);
     USART_Transmit((time>>8));
-
 
     //get voltage and transmit via UART
     get_bus_voltage(busvoltage);
@@ -77,12 +72,6 @@ int main(void) {
     get_shunt_voltage(shuntvoltage);
     USART_Transmit(shuntvoltage[1]);
     USART_Transmit(shuntvoltage[0]);
-
-
-    //get current and
-    // get_current(current);
-    // USART_Transmit(current[1]);
-    // USART_Transmit(current[0]);
   }
   return 0;
 }
