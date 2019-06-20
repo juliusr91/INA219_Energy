@@ -32,17 +32,16 @@ void init_timer(void) {
 
 
 int main(void) {
-  // DDRB |= _BV(DDB5);
-  // PORTB |= _BV(PORTB5);
   /* code */
   uint8_t busvoltage[2];
   uint8_t shuntvoltage[2];
-  // uint8_t current[2];
+
   unsigned int time = 0;
   unsigned int time1 = 0;
   unsigned int time2 = 0;
   unsigned int time3 = 0;
-  /* set pin 5 high to turn led on */
+
+
   busvoltage[1] =0;
   busvoltage[0]=0;
 
@@ -55,6 +54,7 @@ int main(void) {
   init_ina219();
 
   USART_Read();
+  // TODO: read if Odroid ready
   init_timer();
   _delay_ms(1000);
 
@@ -92,6 +92,8 @@ int main(void) {
     USART_Transmit(busvoltage[0]);
     _delay_us(516);
     read_shunt_voltage(shuntvoltage);
+
+    // TODO: interrupt from Odroid
   }
   return 0;
 }
