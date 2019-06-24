@@ -4,6 +4,9 @@
 #include "I2C-master-lib/i2c_master.h"
 #include "ina219.h"
 
+
+
+// setup USB UART
 void setup_UART(unsigned int bittimer) {
   /* code */
   UBRR0H = (unsigned char) (bittimer >> 8);
@@ -14,19 +17,33 @@ void setup_UART(unsigned int bittimer) {
   UCSR0C = (1<<USBS0)|(3<<UCSZ00);
 }
 
+// transmitting to USB
 void USART_Transmit(unsigned char data) {
   /* code */
   while (!(UCSR0A & (1 << UDRE0)));
   UDR0 = data;
 }
 
+// reading from USB
 unsigned char USART_Read(void){
   while (!(UCSR0A & (1<<RXC0)));
   return UDR0;
 }
 
+// needed for clock ticks
 void init_timer(void) {
   TCCR1B = (1 << CS12);
+}
+
+// needed for com with Odroid
+void setup_PB0(void){
+  DDRB = 0b00000000;
+  PORTB = 0b00000000; //enable pull up on all ports
+}
+
+void read_PB0(uint8_t * value){
+  *value =0;
+  *value = PINB;
 }
 
 
@@ -35,6 +52,7 @@ int main(void) {
   /* code */
   uint8_t busvoltage[2];
   uint8_t shuntvoltage[2];
+  uint8_t value_odroid;
 
   unsigned int time = 0;
   unsigned int time1 = 0;
@@ -49,6 +67,7 @@ int main(void) {
   shuntvoltage[0]=0;
 
   setup_UART((CPU_FREQUENCY / UART_BAUD / 16) - 1);
+  setup_PB0();
   //first need to init i2c and then ina219
   i2c_init();
   init_ina219();
@@ -90,6 +109,7 @@ int main(void) {
     prepare_shunt_voltage();
     USART_Transmit(busvoltage[1]);
     USART_Transmit(busvoltage[0]);
+    read_PB0(&value_odroid);
     _delay_us(516);
     read_shunt_voltage(shuntvoltage);
 
