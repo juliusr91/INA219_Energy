@@ -69,6 +69,9 @@ def receive_data():
         shuntvoltage = port.read(2)
         decoded_shuntvoltage = struct.unpack("<H", shuntvoltage)[0] *4  #(in mV) times 4 because of the 0.025Ohm resistor
 
+        test = port.read(1)
+        print(test)
+
 
         # amp = port.read(2)
         # decoded_amp = struct.unpack("<H", amp)[0] / current_divider #in mA

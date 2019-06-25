@@ -37,13 +37,15 @@ void init_timer(void) {
 
 // needed for com with Odroid
 void setup_PB0(void){
-  DDRB = 0b00000000;
-  PORTB = 0b00000000; //enable pull up on all ports
+  DDRB &= ~(1<<0);
+  PORTB |= 1<<0; //enable pull up on all ports
 }
 
 void read_PB0(uint8_t * value){
-  *value =0;
-  *value = PINB;
+  *value = 0;
+  if ((PINB&(1<<0))==1){
+    *value = 1;
+  }
 }
 
 
@@ -52,7 +54,7 @@ int main(void) {
   /* code */
   uint8_t busvoltage[2];
   uint8_t shuntvoltage[2];
-  uint8_t value_odroid;
+  uint8_t value_odroid = 0;
 
   unsigned int time = 0;
   unsigned int time1 = 0;
@@ -88,6 +90,8 @@ int main(void) {
   USART_Transmit(busvoltage[1]);
   USART_Transmit(busvoltage[0]);
 
+  USART_Transmit(value_odroid);
+
   while (1) {
 
     prepare_bus_voltage();
@@ -109,7 +113,10 @@ int main(void) {
     prepare_shunt_voltage();
     USART_Transmit(busvoltage[1]);
     USART_Transmit(busvoltage[0]);
+
     read_PB0(&value_odroid);
+    USART_Transmit(value_odroid);
+
     _delay_us(516);
     read_shunt_voltage(shuntvoltage);
 
