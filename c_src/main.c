@@ -38,7 +38,7 @@ void init_timer(void) {
 // needed for com with Odroid
 void setup_PB0(void){
   DDRB &= ~(1<<0);
-  PORTB |= 1<<0; //enable pull up on all ports
+  PORTB |= 1<<0; //enable pull up on PB0 port
 }
 
 void read_PB0(uint8_t * value){
@@ -114,8 +114,8 @@ int main(void) {
     USART_Transmit(busvoltage[1]);
     USART_Transmit(busvoltage[0]);
 
-    read_PB0(&value_odroid);
-    USART_Transmit(value_odroid);
+    read_PB0(&value_odroid); //check if Odroid still wants measurement
+    USART_Transmit(value_odroid); //temp for debug
 
     _delay_us(516);
     read_shunt_voltage(shuntvoltage);

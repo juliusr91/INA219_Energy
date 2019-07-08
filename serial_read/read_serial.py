@@ -70,7 +70,7 @@ def receive_data():
         decoded_shuntvoltage = struct.unpack("<H", shuntvoltage)[0] *4  #(in mV) times 4 because of the 0.025Ohm resistor
 
         test = port.read(1)
-        print(test)
+        print(struct.unpack("<B", test)[0])
 
 
         # amp = port.read(2)
