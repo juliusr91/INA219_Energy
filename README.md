@@ -1,7 +1,9 @@
 # General
 This is a collection of scripts for profiling the energy consumption of the
-Odroid-XU4. The project is split into several sections for different measurement devices.
-The Otii device, the INA219 + Arduino  and a couple handy commands for the Odroid-XU4.
+Odroid-XU4. The project is split into several sections for different measurement devices. It includes:
+- Scripts for communicating betwee Otii and Odroid
+- Scripts for the INA219 + Arduino for current and voltage measurements
+- Several handy scripts to control the Odroid-XU4
 
 ## Otii
 We use the Otii by qoitech - https://www.qoitech.com/
@@ -23,4 +25,4 @@ Scripts to manage settings on the Odroid including:
 
 License
 
-The source code of I2C-Master-lib is published under the GNU GPLv3, see LICENSE for details.
+The source code of all scripts / libraries is published under the GNU GPLv3, see LICENSE for details.
