@@ -53,3 +53,5 @@ dkms.conf
 
 serial_read/data1\.txt
 otii/build/
+
+*.s

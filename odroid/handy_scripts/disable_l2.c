@@ -15,5 +15,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#define CPU_FREQUENCY 16000000UL
-#define UART_BAUD 500000UL
+
+#include <stdio.h>
+#include <stdint.h>
+
+int main(int argc, char const *argv[]) {
+
+    uint32_t res = 0;
+    __asm(
+        "MRC p15, 0, <Rd>, c1, c0, 0" // read Control Register
+        : [result] "=r" (res)
+    );
+
+    printf("%d\n", res);
+
+    return 0;
+}
