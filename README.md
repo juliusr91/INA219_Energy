@@ -13,7 +13,7 @@ The Odroid communicates over UART - the scripts show how to do the communication
 A collection of scripts for a combination of INA219 and Arduino
 TODO: include interrupts from the Odroid
 
-## Odroid-XU4
+## TODO: Odroid-XU4
 Scripts to manage settings on the Odroid including:
 - Fan settings
 - DVFS
