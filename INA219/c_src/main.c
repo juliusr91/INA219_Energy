@@ -26,7 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // setup USB UART
 void setup_UART(unsigned int bittimer) {
-  /* code */
+  // baud rate
   UBRR0H = (unsigned char) (bittimer >> 8);
   UBRR0L = (unsigned char) bittimer;
   // enable receiver and transmitter
@@ -48,7 +48,7 @@ unsigned char USART_Read(void){
   return UDR0;
 }
 
-// needed for clock ticks
+// clock ticks
 void init_timer(void) {
   TCCR1B = (1 << CS12);
 }
@@ -88,6 +88,7 @@ int main(void) {
 
   setup_UART((CPU_FREQUENCY / UART_BAUD / 16) - 1);
   setup_PB0();
+
   //first need to init i2c and then ina219
   i2c_init();
   init_ina219();
@@ -101,32 +102,23 @@ int main(void) {
   USART_Transmit(time);
   USART_Transmit((time>>8));
 
-  // USART_Transmit(time);
-  // USART_Transmit((time>>8));
-
-
   USART_Transmit(busvoltage[1]);
   USART_Transmit(busvoltage[0]);
 
   USART_Transmit(value_odroid);
 
   while (1) {
-
     prepare_bus_voltage();
-        // time1 = TCNT1;
+
     USART_Transmit(shuntvoltage[1]);
     USART_Transmit(shuntvoltage[0]);
+
     time = TCNT1;
     USART_Transmit(time);
     USART_Transmit((time>>8));
-        // time2 = TCNT1;
-        // time3 = time2 - time1;
-        // USART_Transmit(time3);
-        // USART_Transmit((time3>>8));
 
     _delay_us(484);
     read_bus_voltage(busvoltage);
-
 
     prepare_shunt_voltage();
     USART_Transmit(busvoltage[1]);
@@ -140,5 +132,4 @@ int main(void) {
 
     // TODO: interrupt from Odroid
   }
-  return 0;
 }
