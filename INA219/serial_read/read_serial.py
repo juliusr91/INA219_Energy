@@ -14,46 +14,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 
-
 import serial
 import os
 import struct
 import time
-# import paramiko
 import io
 
 current_divider = 10
 client = None
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------------------------------------------------------------
-#Odroid Function
-# def ssh_connect():
-#     hostname =
-#     password =
-#     username =
-#     client = paramiko.SSHClient()
-#     client.load_system_host_keys()
-#     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#     client.connect(hostname, username=username, password=password)
-#
-# def ssh_close():
-#     client.close()
-#
-#import io
-# def ssh_command(command):
-#     return client.exec_command(command)
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------------------------------------------------------------
-
+TICK_OVERFLOW = 2**16 #number of ticks before reset
+NUM_TICKS = 16000000/256 #number of ticks per second
+TICK_SEC = 1/NUM_TICKS
 
 # INA Functions
 def write_to_file(time_array, busvoltage_data, amp_data, power):
     with open("data1.txt","a+") as b_file:
-        for line in zip(time_array, busvoltage_data, amp_data, power):
+        for line in zip(time_array[1:], busvoltage_data[1:], amp_data[1:], power[1:]):
             b_file.write(str(line)+"\n")
 
 def get_serial_port():
@@ -66,44 +43,52 @@ def init_serial():
     return port
 
 def receive_data(port):
-    time_array = []
-    busvoltage_data = []
-    # shuntvoltage_data = []
-    amp_data = []
-    power_data = []
-
+    time_array = [0]
+    voltage_data = [0]
+    amp_data = [0]
+    power_data = [0]
+    ticks = [0]
+    last_time = 0
     num_lines = 0
-    send_start(port)
+
     while(True):
-        # time = port.read(2)
-        # decoded_time = struct.unpack("<H", time)[0]
+
+        # reading uart line until \n and decoding
+        line = port.readline().decode('ascii')
+        line_array = line.split(",")
+        if len(line_array) == 4:
+            long_timer = int(line_array[0])
+            short_timer = int(line_array[1])
+            voltage = (int(line_array[2]) >> 3) *4 *0.001 #in V
+            amp = int(line_array[3]) * 4 / 10  #times 4 because of the 0.025Ohm resistor; mV div by current divider Ohm of resistor = mA
+            power = amp * voltage #in mW
+
+            # calculating time
+            if short_timer < ticks[-1]:
+                tick_diff =  TICK_OVERFLOW - ticks[-1] + short_timer
+            else:
+                tick_diff = short_timer - ticks[-1]
+
+            time_array.append(last_time + tick_diff*TICK_SEC)
+            voltage_data.append(voltage)
+            amp_data.append(amp)
+            power_data.append(power)
+            ticks.append(short_timer)
+
+            num_lines += 1
+            last_time = time_array[-1]
+        else:
+            print("too short")
 
 
-        line = port.readline()
-        print(line)
-        # line_array = line.split(",")
-        # if len(line_array) == 3:
-        #     print (int(line_array[0]))
-            # print ((int(line_array[1]) >> 3) *4 *0.001) #in V)
-            # print (",")
-            # print (int(line_array[2]) * 4 / 10) #times 4 because of the 0.025Ohm resistor; mV div by current divider Ohm of resistor = mA
-        # else:
-        #     print("too short")
-
-        # power = decoded_amp * decoded_busvoltage #in mW
-        #
-        #
-        # num_lines += 1
-        # if num_lines == 100:
-        #     # write_to_file(time_array, busvoltage_data, shuntvoltage_data, amp_data)
-        #     write_to_file(time_array, busvoltage_data, amp_data, power_data)
-        #     # write_to_file(time_array, busvoltage_data, amp_data)
-        #     num_lines=0
-        #     time_array = []
-        #     busvoltage_data = []
-        #     # shuntvoltage_data = []
-        #     amp_data = []
-        #     power_data = []
+        if num_lines == 100:
+            print("here")
+            write_to_file(time_array, voltage_data, amp_data, power_data)
+            num_lines=0
+            time_array = [0]
+            voltage_data = [0]
+            amp_data = [0]
+            power_data = [0]
 
 def send_start(port):
     # start_byte = bytearray([240])
@@ -126,5 +111,4 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('interrupted')
 
-    # results.close()
     port.close()
