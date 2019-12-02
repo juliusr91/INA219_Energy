@@ -46,6 +46,7 @@ void init_ina219(void){
     uint8_t cal_val[2];
     cal_val[0]= 0x10;
     cal_val[1]= 0x00;
+
     i2c_writeReg((INA219_ADDRESS)<<1, INA219_REG_CALIBRATION, cal_val, 2);
 
     /* sets up INA219 for 32V, 320mV gain, 12BIT ADC, 1 sample at 12BIT in continuous mode */

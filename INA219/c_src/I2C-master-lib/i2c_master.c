@@ -51,13 +51,15 @@ uint8_t i2c_start(uint8_t address)
 	TWCR = 0;
 	// transmit START condition
 	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
-	// wait for end of transmission
+
+    // wait for end of transmission
 	while( !(TWCR & (1<<TWINT)) );
 
-	// check if the start condition was successfully transmitted
+
+    // check if the start condition was successfully transmitted
 	if((TWSR & 0xF8) != TW_START){ return 1; }
 
-	// load slave address into data register
+    // load slave address into data register
 	TWDR = address;
 	// start transmission of address
 	TWCR = (1<<TWINT) | (1<<TWEN);
@@ -109,9 +111,12 @@ uint8_t i2c_read_nack(void)
 
 uint8_t i2c_writeReg(uint8_t devaddr, uint8_t regaddr, uint8_t* data, uint16_t length)
 {
-	if (i2c_start(devaddr | 0x00)) return 1;
+    if (i2c_start(devaddr | 0x00)) return 1;
+
+
 
 	i2c_write(regaddr);
+
 
 	for (uint16_t i = 0; i < length; i++)
 	{

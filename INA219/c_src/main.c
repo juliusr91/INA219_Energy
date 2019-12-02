@@ -14,19 +14,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
-
 #include <avr/io.h>
 #include "defines.h"
 #include <util/delay.h>
 #include "I2C-master-lib/i2c_master.h"
 #include "ina219.h"
-
+#include <stdlib.h>
 
 
 // setup USB UART
 void setup_UART(unsigned int bittimer) {
-  // baud rate
+  // baud rate registers (UBRRnH & UBRRnL)
   UBRR0H = (unsigned char) (bittimer >> 8);
   UBRR0L = (unsigned char) bittimer;
   // enable receiver and transmitter
@@ -36,10 +34,17 @@ void setup_UART(unsigned int bittimer) {
 }
 
 // transmitting to USB
-void USART_Transmit(unsigned char data) {
+void USART_Transmit(char data) {
   /* code */
   while (!(UCSR0A & (1 << UDRE0)));
   UDR0 = data;
+}
+
+void USART_Transmit_string(char *data) {
+    /* code */
+    uint8_t i = 0;
+    while (data[i] != '\0')
+        USART_Transmit (data[i++]);
 }
 
 // reading from USB
@@ -53,83 +58,75 @@ void init_timer(void) {
   TCCR1B = (1 << CS12);
 }
 
-// needed for com with Odroid
-void setup_PB0(void){
-  DDRB &= ~(1<<0);
-  PORTB |= 1<<0; //enable pull up on PB0 port
-}
-
-void read_PB0(uint8_t * value){
-  *value = 0;
-  if ((PINB&(1<<0))==1){
-    *value = 1;
-  }
-}
-
-
-
 int main(void) {
   /* code */
+  // reading data from INA219
   uint8_t busvoltage[2];
   uint8_t shuntvoltage[2];
-  uint8_t value_odroid = 0;
+  busvoltage[1] = 0;
+  busvoltage[0] = 0;
+  shuntvoltage[1] = 0;
+  shuntvoltage[0] = 0;
 
-  unsigned int time = 0;
-  unsigned int time1 = 0;
-  unsigned int time2 = 0;
-  unsigned int time3 = 0;
+  // for transforming data and sending over UART
+  int busv, shuntv;
+  char char_voltage[5]; //
+  char char_current[5];
 
+  //timer vars
+  volatile unsigned int long_timer = 0;
+  volatile unsigned int old_ticks = 0;
+  volatile unsigned int current_ticks = 0;
+  char time_char[5];
+  char char_long_timer[5];
 
-  busvoltage[1] =0;
-  busvoltage[0]=0;
-
-  shuntvoltage[1]=0;
-  shuntvoltage[0]=0;
-
-  setup_UART((CPU_FREQUENCY / UART_BAUD / 16) - 1);
-  setup_PB0();
-
-  //first need to init i2c and then ina219
-  i2c_init();
-  init_ina219();
-
-  USART_Read();
+  // TODO: interrupt from Odroid
   // TODO: read if Odroid ready
+
+  // setup UART
+  setup_UART((CPU_FREQUENCY / UART_BAUD / 16) - 1); //for com with host device
+
+  //init i2c, ina219 and timer
+  i2c_init(); //for com with INA 219
+  init_ina219();
   init_timer();
-  _delay_ms(1000);
 
-  //bogus first transmit
-  USART_Transmit(time);
-  USART_Transmit((time>>8));
+ while (1) {
+//  prepare bus voltage register
+   prepare_bus_voltage();
 
-  USART_Transmit(busvoltage[1]);
-  USART_Transmit(busvoltage[0]);
+ // send shuntvoltage
+   shuntv = (shuntvoltage[0] << 8) | (shuntvoltage[1] & 0xff); //most significant byte sent first by INA219
+   itoa(shuntv, char_current, 10);
+   USART_Transmit_string(char_current);
+   USART_Transmit(EOL);
 
-  USART_Transmit(value_odroid);
+//  send time
+   current_ticks = TCNT1;
+   if (current_ticks < old_ticks) {
+     long_timer++;
+   }
+   utoa(long_timer, char_long_timer, 10);
+   USART_Transmit_string(char_long_timer);
+   USART_Transmit(',');
+   utoa(current_ticks, time_char, 10);
+   USART_Transmit_string(time_char);
+   USART_Transmit(',');
 
-  while (1) {
-    prepare_bus_voltage();
+//  read bus voltage and prepare the shunt voltage register
+   _delay_us(484);
+   read_bus_voltage(busvoltage);
+   prepare_shunt_voltage();
 
-    USART_Transmit(shuntvoltage[1]);
-    USART_Transmit(shuntvoltage[0]);
+//  send busvoltage
+   busv = (busvoltage[0] << 8) | (busvoltage[1] & 0xff); //most significant byte sent first by INA219
+   itoa(busv, char_voltage, 10);
+   USART_Transmit_string(char_voltage);
+   USART_Transmit(',');
 
-    time = TCNT1;
-    USART_Transmit(time);
-    USART_Transmit((time>>8));
-
-    _delay_us(484);
-    read_bus_voltage(busvoltage);
-
-    prepare_shunt_voltage();
-    USART_Transmit(busvoltage[1]);
-    USART_Transmit(busvoltage[0]);
-
-    read_PB0(&value_odroid); //check if Odroid still wants measurement
-    USART_Transmit(value_odroid); //temp for debug
-
-    _delay_us(516);
-    read_shunt_voltage(shuntvoltage);
-
-    // TODO: interrupt from Odroid
-  }
+//  wait and read shuntvoltage
+   _delay_us(516);
+   read_shunt_voltage(shuntvoltage);
+   old_ticks = current_ticks;
+ }
 }

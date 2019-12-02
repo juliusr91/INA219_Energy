@@ -17,3 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define CPU_FREQUENCY 16000000UL
 #define UART_BAUD 500000UL
+
+#ifndef EOL
+  #define EOL 0x0A
+#endif
