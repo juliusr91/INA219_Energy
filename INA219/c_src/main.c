@@ -80,9 +80,6 @@ int main(void) {
   char time_char[5];
   char char_long_timer[5];
 
-  // TODO: interrupt from Odroid
-  // TODO: read if Odroid ready
-
   // setup UART
   setup_UART((CPU_FREQUENCY / UART_BAUD / 16) - 1); //for com with host device
 
@@ -114,7 +111,7 @@ int main(void) {
    USART_Transmit(',');
 
 //  read bus voltage and prepare the shunt voltage register
-   _delay_us(484);
+   _delay_us(484); //required to make sure that the ADC is done. TODO: find more accurate delays
    read_bus_voltage(busvoltage);
    prepare_shunt_voltage();
 
@@ -125,7 +122,7 @@ int main(void) {
    USART_Transmit(',');
 
 //  wait and read shuntvoltage
-   _delay_us(516);
+   _delay_us(516);  //required to make sure that the ADC is done.
    read_shunt_voltage(shuntvoltage);
    old_ticks = current_ticks;
  }
